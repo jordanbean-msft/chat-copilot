@@ -30,6 +30,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Diagnostics;
 using Microsoft.SemanticKernel.Functions.OpenAPI.Authentication;
 using Microsoft.SemanticKernel.Functions.OpenAPI.Extensions;
+using Microsoft.SemanticKernel.Functions.OpenAPI.OpenAI;
 using Microsoft.SemanticKernel.Orchestration;
 using Microsoft.SemanticKernel.Plugins.MsGraph;
 using Microsoft.SemanticKernel.Plugins.MsGraph.Connectors;
@@ -334,14 +335,14 @@ public class ChatController : ControllerBase, IDisposable
                         var requiresAuth = !plugin.AuthType.Equals("none", StringComparison.OrdinalIgnoreCase);
                         BearerAuthenticationProvider authenticationProvider = new(() => Task.FromResult(PluginAuthValue));
 
-                        await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
+                        await planner.Kernel.ImportOpenAIPluginFunctionsAsync(
                             $"{plugin.NameForModel}Plugin",
                             PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
-                            new OpenApiFunctionExecutionParameters
+                            new OpenAIFunctionExecutionParameters
                             {
                                 HttpClient = this._httpClientFactory.CreateClient("Plugin"),
                                 IgnoreNonCompliantErrors = true,
-                                AuthCallback = requiresAuth ? authenticationProvider.AuthenticateRequestAsync : null
+                                AuthCallback = null
                             });
                     }
                 }
@@ -386,14 +387,14 @@ public class ChatController : ControllerBase, IDisposable
                     () => Task.FromResult(plugin.Key));
 
                 // Register the ChatGPT plugin with the planner's kernel.
-                await planner.Kernel.ImportOpenApiPluginFunctionsAsync(
+                await planner.Kernel.ImportOpenAIPluginFunctionsAsync(
                     PluginUtils.SanitizePluginName(plugin.Name),
                     PluginUtils.GetPluginManifestUri(plugin.ManifestDomain),
-                    new OpenApiFunctionExecutionParameters
+                    new OpenAIFunctionExecutionParameters
                     {
                         HttpClient = this._httpClientFactory.CreateClient("Plugin"),
                         IgnoreNonCompliantErrors = true,
-                        AuthCallback = authenticationProvider.AuthenticateRequestAsync
+                        AuthCallback = null//authenticationProvider.AuthenticateRequestAsync
                     });
             }
             else
